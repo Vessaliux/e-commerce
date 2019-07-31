@@ -32,7 +32,8 @@ module.exports = {
         contentBase: path.join(__dirname, "public/"),
         headers: { 'Access-Control-Allow-Origin': '*' },
         port: 3000,
-        hotOnly: true
+        hotOnly: true,
+        disableHostCheck: true
     },
     plugins: [new webpack.HotModuleReplacementPlugin()]
 };
