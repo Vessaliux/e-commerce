@@ -5,22 +5,25 @@ import { Provider } from 'react-redux';
 import store from './store';
 import './styles/App.css';
 
-import Col from 'react-bootstrap/Col';
-import Container from 'react-bootstrap/Container';
-import Row from 'react-bootstrap/Row';
 import Header from './components/Header';
+import Home from './components/Home';
 import Register from './components/Register';
+import GenericNotFound from './components/GenericNotFound';
 
 function App() {
     return (
         <Provider store={store}>
-            <Header />
-            <div className='mt-4'></div>
-            <Container>
-                <Col md={{ span: 6, offset: 3 }}>
-                    <Register />
-                </Col>
-            </Container>
+            <Router>
+                <React.Fragment>
+                    <Header />
+                    <div className='mt-4'></div>
+                    <Switch>
+                        <Route exact path="/" component={Home} />
+                        <Route path="/register" component={Register} />
+                        <Route component={GenericNotFound} />
+                    </Switch>
+                </React.Fragment>
+            </Router>
         </Provider>
     );
 
