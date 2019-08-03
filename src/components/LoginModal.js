@@ -14,7 +14,9 @@ import {
     Modal, ModalHeader, ModalBody,
 } from 'reactstrap';
 
-const LoginModal = ({ error, auth, dispatch, ...props }) => {
+let canRedirect = true;
+
+const LoginModal = ({ error, auth, notification, dispatch, ...props }) => {
     const [alert, setAlert] = React.useState(false);
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -22,12 +24,19 @@ const LoginModal = ({ error, auth, dispatch, ...props }) => {
         email: null,
         password: null
     });
+    const [redirect, setRedirect] = React.useState('');
 
     React.useEffect(() => {
         if (error.header === 'login') {
             setAlert(true);
         }
     }, [error]);
+
+    React.useEffect(() => {
+        if (notification.header === "login" && notification.status === 200) {
+            setRedirect('/');
+        }
+    }, [notification]);
 
     const handleDismiss = () => {
         setAlert(false);
@@ -64,8 +73,15 @@ const LoginModal = ({ error, auth, dispatch, ...props }) => {
         store.dispatch(fetchUser(email, password));
     }
 
-    if (auth.isAuthenticated) {
-        return <Redirect to="/" />
+    if (redirect.length > 0 && canRedirect) {
+        canRedirect = false;
+        setEmail('');
+        setPassword('');
+        props.toggle();
+        return (<Redirect to={redirect} />);
+    } else if (!canRedirect) {
+        canRedirect = true;
+        setRedirect('');
     }
 
     return (
@@ -75,8 +91,6 @@ const LoginModal = ({ error, auth, dispatch, ...props }) => {
             <ModalHeader toggle={props.toggle}>Login to E-Commerce</ModalHeader>
             <ModalBody>
                 <Form onSubmit={handleSubmit}>
-                    <Alert color='danger' isOpen={alert} toggle={handleDismiss}>{error.msg}</Alert>
-
                     <FormGroup>
                         <Label for='loginEmail'>Email</Label>
                         <Input invalid={validation.email !== null} type='email' id='loginEmail' onChange={e => { handleInputChange(e, setEmail) }} value={email} />
@@ -90,6 +104,8 @@ const LoginModal = ({ error, auth, dispatch, ...props }) => {
                     </FormGroup>
 
                     <Button color='primary'>Login</Button>
+
+                    <Alert className='mt-4' color='danger' isOpen={alert} toggle={handleDismiss}>{error.msg}</Alert>
                 </Form>
             </ModalBody>
         </Modal>
@@ -98,7 +114,8 @@ const LoginModal = ({ error, auth, dispatch, ...props }) => {
 
 const mapStateToProps = state => ({
     error: state.errors,
-    auth: state.auth
+    auth: state.auth,
+    notification: state.notification
 });
 
 export default connect(mapStateToProps)(LoginModal);

@@ -6,15 +6,24 @@ export const fetchUser = (email, password) => (dispatch) => {
     // Set to loading
     dispatch({ type: USER_LOADING });
 
-    axios.post('api/login', { email, password })
+    axios.post('/api/login', { email, password })
         .then(res => {
-            const data = {
+            let data = {
                 token: res.data.token,
                 user: res.data.user
             }
-
             dispatch({
                 type: AUTH_LOGIN,
+                payload: data
+            });
+
+            data = {
+                header: 'login',
+                msg: '',
+                status: res.status
+            }
+            dispatch({
+                type: NOTIFY,
                 payload: data
             });
         }).catch(err => {
@@ -31,13 +40,13 @@ export const fetchUser = (email, password) => (dispatch) => {
         });
 }
 
-// FETCH & LOAD USER USING EMAIL & PASSWORD
+// REGISTER USER
 export const registerUser = (fields) => (dispatch) => {
-    axios.post('api/register', fields)
+    axios.post('/api/register', fields)
         .then(res => {
             const data = {
                 header: 'register',
-                token: res.data.msg,
+                msg: res.data.msg,
                 status: res.status
             }
 
@@ -86,7 +95,7 @@ export const loadUser = () => (dispatch, getState) => {
         config.headers['Authorization'] = `Bearer ${token}`
     }
 
-    axios.get('api/auth/user', config)
+    axios.get('/api/auth/user', config)
         .then(res => {
             dispatch({
                 type: USER_LOADED,
@@ -117,7 +126,7 @@ export const logout = () => (dispatch, getState) => {
         config.headers['Authorization'] = `Bearer ${token}`
     }
 
-    axios.post('api/auth/logout/', null, config)
+    axios.post('/api/auth/logout/', null, config)
         .then(res => {
             dispatch({
                 type: LOGOUT_SUCCESS

@@ -31,7 +31,7 @@ class UserTest extends TestCase
     }
 
     /** @test */
-    public function a_user_can_register_an_account()
+    public function user_can_register_an_account()
     {
         $request = Request::create('/register', 'POST', [
             'name' => 'Glen',
@@ -46,7 +46,7 @@ class UserTest extends TestCase
     }
 
     /** @test */
-    public function a_user_registers_with_an_existing_email()
+    public function user_registers_with_an_existing_email()
     {
         $user = factory(User::class)->create();
         $request = Request::create('/register', 'POST', [

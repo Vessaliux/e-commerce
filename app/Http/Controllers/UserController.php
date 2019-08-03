@@ -24,9 +24,9 @@ class UserController extends Controller
         return response()->json($response, $status);
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        return response()->json(User::with(['orders'])->get());
+        return response()->json(Product::all(), 200);
     }
 
     public function login(Request $request)
@@ -81,6 +81,21 @@ class UserController extends Controller
         $user->is_admin = 0;
 
         return response()->json(['msg' => 'Registration successful'], 200);
+    }
+
+    public function update(Request $request, $id)
+    {
+        $user = User::where('id', '=', $id)->first();
+
+        if ($user === null) {
+            return response()->json(['error' => 'User does not exist'], 404);
+        }
+
+        try {
+            $user->update($request->all());
+        } catch (\Illuminate\Database\QueryException $ex) {
+            return response()->json(['error' => 'Email already exists'], 422);
+        }
     }
 
     public function show(User $user)

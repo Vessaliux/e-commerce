@@ -1,39 +1,61 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Link } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import { logout } from '../actions/auth';
 
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
+import {
+    Collapse,
+    Navbar, NavbarToggler, NavbarBrand,
+    Nav, NavItem, NavLink,
+    UncontrolledDropdown,
+    DropdownToggle, DropdownMenu, DropdownItem
+} from 'reactstrap';
 
 const Header = ({ auth, logout, handleLoginClick = () => { } }) => {
-    let component;
+    const [isOpen, setIsOpen] = React.useState(false);
 
+    const toggle = () => {
+        setIsOpen(!isOpen);
+    }
+
+    let component;
     if (auth.isAuthenticated) {
         component = (
             <React.Fragment>
-                <Nav.Link>{auth.user.name}</Nav.Link>
-                <Nav.Link onClick={logout}>Logout</Nav.Link>
+                <UncontrolledDropdown nav inNavbar>
+                    <DropdownToggle nav caret>{auth.user.name}</DropdownToggle>
+                    <DropdownMenu right>
+                        <DropdownItem href='/editprofile'>Edit Profile</DropdownItem>
+                        <DropdownItem divider />
+                        <DropdownItem onClick={logout}>Logout</DropdownItem>
+                    </DropdownMenu>
+                </UncontrolledDropdown>
             </React.Fragment>
         );
     } else {
         component = (
             <React.Fragment>
-                <Nav.Link onClick={handleLoginClick}>Login</Nav.Link>
-                <Nav.Link href="/register">Register</Nav.Link>
+                <NavItem>
+                    <NavLink href='#' onClick={handleLoginClick}>Login</NavLink>
+                </NavItem>
+                <NavItem>
+                    <NavLink tag={Link} to='/register'>Register</NavLink>
+                </NavItem>
             </React.Fragment>
         );
     }
 
     return (
-        <Navbar bg="dark" variant="dark">
-            <Navbar.Brand href="/">E-Commerce</Navbar.Brand>
-            <Navbar.Collapse className="justify-content-end">
-                <Nav>
+        <Navbar color='secondary' dark expand='md'>
+            <NavbarBrand tag={Link} to='/'>E-Commerce</NavbarBrand>
+            <NavbarToggler onClick={toggle} />
+            <Collapse isOpen={isOpen} navbar>
+                <Nav className='ml-auto' navbar>
                     {component}
                 </Nav>
-            </Navbar.Collapse>
+            </Collapse>
         </Navbar>
     )
 }

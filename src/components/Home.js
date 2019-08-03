@@ -1,7 +1,9 @@
 import React from 'react';
-import { connect } from 'react-redux';
+import { Redirect } from 'react-router-dom'
 import PropTypes from 'prop-types';
 import { getProducts } from '../actions/products';
+
+import { connect } from 'react-redux';
 
 import { Button, Card, CardBody, CardImg, CardImgOverlay, CardText, Col, Container, Row } from 'reactstrap';
 
@@ -17,13 +19,14 @@ const cardImageStyle = {
 
 function Home({ products, getProducts }) {
     const [hoverId, setHoverId] = React.useState(0);
+    const [redirect, setRedirect] = React.useState('');
 
     React.useEffect(() => {
         getProducts();
-    }, [true]);
+    }, []);
 
-    const handleCardClick = (e) => {
-        console.log(e.target);
+    const handleCardClick = (e, productId) => {
+        setRedirect(`/products/${productId}`)
     }
 
     const handleMouseEnterCard = (e, productId) => {
@@ -32,6 +35,10 @@ function Home({ products, getProducts }) {
 
     const handleMouseLeaveCard = e => {
         setHoverId(0);
+    }
+
+    if (redirect.length > 0) {
+        return (<Redirect to={redirect} />);
     }
 
     return (
@@ -43,7 +50,7 @@ function Home({ products, getProducts }) {
                             <Card
                                 onMouseEnter={e => { handleMouseEnterCard(e, product.id) }}
                                 onMouseLeave={handleMouseLeaveCard}
-                                onClick={handleCardClick}
+                                onClick={e => { handleCardClick(e, product.id) }}
                                 body outline color='muted'
                                 style={cardStyle}
                             >

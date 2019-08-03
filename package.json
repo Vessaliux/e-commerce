@@ -37,10 +37,13 @@
         "react-hot-loader": "^4.12.10",
         "react-redux": "^7.1.0",
         "react-router-dom": "^5.0.1",
+        "react-stripe-elements": "^4.0.0",
         "react-transition-group": "^4.2.1",
         "reactstrap": "^8.0.1",
         "redux": "^4.0.4",
         "redux-devtools-extension": "^2.13.8",
-        "redux-thunk": "^2.3.0"
+        "redux-thunk": "^2.3.0",
+        "regenerator-runtime": "^0.13.3",
+        "stripe": "^7.5.4"
     }
 }
