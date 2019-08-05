@@ -1,4 +1,4 @@
-Clone the repository, then run the following commands:
+Clone the repository, then run the following commands from the root directory of the project:
 
 ```
 mv ./.env.test ./.env
