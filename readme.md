@@ -16,5 +16,7 @@ Front-end: React (Redux, Bootstrapv4)
 <br />
 <br />
 <b>Default admin account</b>
-<p>email: admin@e-commerce.test</p>
-<p>pw: admin</p>
+```
+email: admin@e-commerce.test
+pw: admin
+```
