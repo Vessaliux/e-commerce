@@ -16,7 +16,13 @@ class Product extends Model
         'name', 'price', 'units', 'description', 'image'
     ];
 
-    public function orders() {
-        return $this->hasMany(Order::class);
+    public function cartItems()
+    {
+        return $this->hasMany(CartItem::class);
+    }
+
+    public function orderItems()
+    {
+        return $this->hasMany(OrderItem::class);
     }
 }

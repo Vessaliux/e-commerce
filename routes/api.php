@@ -2,17 +2,21 @@
 
 use Illuminate\Http\Request;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
+Route::post('/login', 'UserController@login');
+Route::post('/register', 'UserController@register');
+Route::get('/products', 'ProductController@index');
+Route::get('/products/{product}', 'ProductController@show');
+Route::get('/auth/user', 'UserController@user');
 
-Route::middleware('auth:api')->get('/user', function (Request $request) {
-    return $request->user();
+Route::group(['middleware' => 'auth:api'], function () {
+    Route::get('/logout', 'UserController@logout');
+    Route::patch('/users/{id}', 'UserController@update');
+    Route::get('/users/{id}', 'UserController@show');
+    Route::post('/users/{id}/cart', 'UserController@fetchCart');
+    Route::post('/carts/{id}', 'CartController@addItem');
+    Route::post('/carts/{id}/remove', 'CartController@removeItem');
+    Route::get('users/{id}/order', 'OrderController@showOrders');
+    Route::post('/products/upload-image', 'ProductController@uploadFile');
+    Route::resource('/products', 'ProductController')->except(['index', 'show']);
+    Route::post('/stripe', 'StripeController@charge');
 });

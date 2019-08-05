@@ -2,84 +2,112 @@
 
 namespace App\Http\Controllers;
 
+use Auth;
 use App\Product;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
     public function index()
     {
-        //
+        return response()->json(Product::all(), 200);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
     public function store(Request $request)
     {
-        //
+        $user = Auth::user();
+
+        // ensure user is admin
+        if (!$user->is_admin) {
+            return response()->json(['error' => 'Unauthorized access'], 401);
+        }
+
+        $product = Product::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'units' => $request->units,
+            'price' => $request->price,
+            'image' => $request->image
+        ]);
+
+        if (!$product) {
+            return response()->json(['error' => 'Error Creating Product'], 500);
+        }
+
+        $response = [
+            'product' => $product,
+            'products' => Product::all(),
+            'msg' => "Product Created"
+        ];
+        return response()->json($response, 201);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
     public function show(Product $product)
     {
-        //
+        return response()->json($product, 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Product $product)
+    public function uploadFile(Request $request)
     {
-        //
+        if ($request->hasFile('image')) {
+            $name = time() . "_" . $request->file('image')->getClientOriginalName();
+            $request->file('image')->move(public_path('images'), $name);
+        } else {
+            return response()->json(['error' => 'Invalid file type'], 400);
+        }
+
+        $response = [
+            'image' => asset("images/$name"),
+            'msg' => 'Image Uploaded'
+        ];
+        return response()->json($response, 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Product $product)
+    public function update(Request $request, $id)
     {
-        //
+        $user = Auth::user();
+
+        // ensure user is admin
+        if (!$user->is_admin) {
+            return response()->json(['error' => 'Unauthorized access'], 401);
+        }
+
+        // ensure product exists
+        $product = Product::find($id);
+        if (!$product->exists()) {
+            return response()->json(['error' => 'Product does not exist'], 404);
+        }
+
+        if (!$product->update($request->only(['name', 'description', 'units', 'price', 'image']))) {
+            return response()->json(['error' => 'Error Updating Product'], 500);
+        }
+
+        $response = [
+            'product' => $product,
+            'products' => Product::all(),
+            'msg' => "Product Updated"
+        ];
+        return response()->json($response, 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Product  $product
-     * @return \Illuminate\Http\Response
-     */
+    public function updateUnits(Request $request, Product $product)
+    {
+        $product->units = $product->units + $request->get('units');
+        $status = $product->save();
+
+        return response()->json([
+            'status' => $status,
+            'message' => $status ? "Units Added" : "Error Adding Product Units"
+        ]);
+    }
+
     public function destroy(Product $product)
     {
-        //
+        $status = $product->delete();
+
+        return response()->json([
+            'status' => $status,
+            'message' => $status ? "Product Deleted" : "Error Deleting Product"
+        ]);
     }
 }
