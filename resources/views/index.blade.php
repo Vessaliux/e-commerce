@@ -23,11 +23,7 @@
     <noscript>
         You need to enable JavaScript to run this app.
     </noscript>
-    @if(env('APP_ENV') === 'local')
-    <script src="http://localhost:3000/js/app.js"></script>
-    @else
     <script src="/js/app.js"></script>
-    @endif
 </body>
 
 </html>
