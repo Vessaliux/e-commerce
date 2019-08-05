@@ -4,6 +4,9 @@ namespace Tests\Unit;
 
 use App;
 use App\User;
+use App\Cart;
+use App\CartItem;
+use App\Product;
 use App\Order;
 use Tests\TestCase;
 use Illuminate\Http\Request;
@@ -53,13 +56,17 @@ class StripeTest extends TestCase
     }
 
     /** @test */
-    public function stripe_intent_can_be_created_with_api_call()
+    public function stripe_charge_can_be_created_with_api_call()
     {
-        $request = Request::create('/stripe/intent', 'POST', [
+        $user = factory(User::class)->create([
+            'email' => 'JohnDoe@test.com'
+        ]);
+        \Auth::login($user);
+        $request = Request::create('/stripe', 'POST', [
             'amount' => 499,
         ]);
-        $response = (new StripeController())->createIntent($request);
+        $response = (new StripeController())->charge($request);
 
-        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertNotEquals(405, $response->getStatusCode());
     }
 }

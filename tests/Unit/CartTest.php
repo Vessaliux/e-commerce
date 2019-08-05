@@ -152,6 +152,7 @@ class CartTest extends TestCase
             'user_id' => $user->id
         ]);
         $product_1 = factory(Product::class)->create([
+            'id' => 100,
             'price' => 9.99
         ]);
         factory(CartItem::class)->create([
