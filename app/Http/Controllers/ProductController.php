@@ -109,6 +109,7 @@ class ProductController extends Controller
             return response()->json(['error' => 'Unauthorized for non admins'], 401);
         }
 
+        $product->cartItems()->delete();
         if (!$product->delete()) {
             return response()->json(['error' => 'Error deleting product'], 500);
         }

@@ -23,7 +23,7 @@ class CartController extends Controller
 
         // ensure cart exists
         $cart = Cart::find($id);
-        if (!$cart->exists()) {
+        if (!$cart || !$cart->exists()) {
             return response()->json(['error' => 'Cart does not exist'], 404);
         }
 
