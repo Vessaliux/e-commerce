@@ -2,14 +2,14 @@
 
 use Illuminate\Http\Request;
 
-Route::post('login', 'UserController@login');
-Route::post('register', 'UserController@register');
+Route::post('/login', 'UserController@login');
+Route::post('/register', 'UserController@register');
 Route::get('/products', 'ProductController@index');
 Route::get('/products/{product}', 'ProductController@show');
 Route::get('/auth/user', 'UserController@user');
 
 Route::group(['middleware' => 'auth:api'], function () {
-    Route::post('logout', 'UserController@logout');
+    Route::get('/logout', 'UserController@logout');
     Route::patch('/users/{id}', 'UserController@update');
     Route::get('/users/{id}', 'UserController@show');
     Route::post('/users/{id}/cart', 'UserController@fetchCart');

@@ -100,11 +100,16 @@ class CartTest extends TestCase
     /** @test */
     public function adding_an_item_to_the_cart_should_generate_and_map_CartItem()
     {
-        $user = factory(User::class)->create();
+        $user = factory(User::class)->create([
+            'id' => 4124
+        ]);
         $cart = factory(Cart::class)->create([
+            'id' => 12313,
             'user_id' => $user->id
         ]);
-        $product_1 = factory(Product::class)->create();
+        $product_1 = factory(Product::class)->create([
+            'id' => 5123124
+        ]);
 
         \Auth::login($user);
         $request = Request::create("/carts/$cart->id", 'POST', [
@@ -119,7 +124,9 @@ class CartTest extends TestCase
     /** @test */
     public function adding_an_existing_item_to_the_cart_should_add_to_existing_CartItem_quantity()
     {
-        $user = factory(User::class)->create();
+        $user = factory(User::class)->create([
+            'id' => 4124
+        ]);
         $cart = factory(Cart::class)->create([
             'user_id' => $user->id
         ]);
@@ -152,6 +159,7 @@ class CartTest extends TestCase
             'user_id' => $user->id
         ]);
         $product_1 = factory(Product::class)->create([
+            'id' => 100,
             'price' => 9.99
         ]);
         factory(CartItem::class)->create([
@@ -173,11 +181,15 @@ class CartTest extends TestCase
     /** @test */
     public function reducing_quantity_to_0_should_remove_item()
     {
-        $user = factory(User::class)->create();
+        $user = factory(User::class)->create([
+            'id' => 241234
+        ]);
         $cart = factory(Cart::class)->create([
+            'id' => 42144124,
             'user_id' => $user->id
         ]);
         $product_1 = factory(Product::class)->create([
+            'id' => 41243,
             'price' => 9.99
         ]);
         factory(CartItem::class)->create([

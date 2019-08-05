@@ -113,7 +113,7 @@ export const logout = () => (dispatch, getState) => {
         config.headers['Authorization'] = `Bearer ${token}`
     }
 
-    axios.post('/api/auth/logout/', null, config)
+    axios.get('/auth/logout/', config)
         .then(res => {
             dispatch({
                 type: LOGOUT_SUCCESS
