@@ -146,3 +146,35 @@ export const insertProduct = (fields) => (dispatch, getState) => {
             });
     });
 }
+
+// DELETE A PRODUCT
+export const deleteProduct = (productId) => (dispatch, getState) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getState().auth.token}`
+        }
+    }
+
+    axios.delete(`/api/products/${productId}`, config)
+        .then(res => {
+            dispatch({
+                type: GET_PRODUCTS,
+                payload: res.data.products
+            });
+        }).catch(err => {
+            /*let msg;
+            if (typeof err.response.data.error === 'object') {
+                msg = Object.values(err.response.data.error).join(" ");
+            } else {
+                msg = err.response.data.error;
+            }
+
+            const error = {
+                msg,
+                status: err.response.status
+            }*/
+
+            console.log(err.response);
+        });
+}

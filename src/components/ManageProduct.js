@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
-import { getProducts, updateProduct, uploadProductImage, insertProduct } from '../actions/products';
+import { getProducts, updateProduct, uploadProductImage, insertProduct, deleteProduct } from '../actions/products';
 
 import BootstrapTable from 'react-bootstrap-table-next';
 import 'react-bootstrap-table-next/dist/react-bootstrap-table2.min.css';
@@ -22,7 +22,7 @@ import {
 let collapsed = [];
 let fields = {};
 let DeleteIndex = 0;
-const ManageProduct = ({ products, getProducts, updateProduct, uploadProductImage, insertProduct, ...props }) => {
+const ManageProduct = ({ products, getProducts, updateProduct, uploadProductImage, insertProduct, deleteProduct, ...props }) => {
     const [collapsedList, setCollapsedList] = React.useState([]);
     const [fieldData, setFieldData] = React.useState({});
     const [deleteModal, setDeleteModal] = React.useState(false);
@@ -85,6 +85,12 @@ const ManageProduct = ({ products, getProducts, updateProduct, uploadProductImag
     const handleDeleteClick = row => {
         DeleteIndex = row.id;
         setDeleteModal(true);
+    }
+
+    const handleDeleteProduct = () => {
+        deleteProduct(DeleteIndex);
+        setDeleteModal(false);
+        DeleteIndex = 0;
     }
 
     const valueSortFunc = (a, b, order, dataField, rowA, rowB) => {
@@ -374,7 +380,7 @@ const ManageProduct = ({ products, getProducts, updateProduct, uploadProductImag
             <Modal isOpen={deleteModal} toggle={handleModalCancel} centered>
                 <ModalHeader toggle={handleModalCancel}>Delete {DeleteIndex === 0 ? '' : products[DeleteIndex - 1].name}?</ModalHeader>
                 <ModalFooter>
-                    <Button color='danger'>Confirm</Button>
+                    <Button onClick={handleDeleteProduct} color='danger'>Confirm</Button>
                     <Button onClick={handleModalCancel} color='secondary'>Cancel</Button>
                 </ModalFooter>
             </Modal>
@@ -425,11 +431,12 @@ ManageProduct.propTypes = {
     getProducts: PropTypes.func.isRequired,
     updateProduct: PropTypes.func.isRequired,
     uploadProductImage: PropTypes.func.isRequired,
-    insertProduct: PropTypes.func.isRequired
+    insertProduct: PropTypes.func.isRequired,
+    deleteProduct: PropTypes.func.isRequired
 }
 
 const mapStateToProps = state => ({
     products: state.products.products
 });
 
-export default connect(mapStateToProps, { getProducts, updateProduct, uploadProductImage, insertProduct })(ManageProduct);
+export default connect(mapStateToProps, { getProducts, updateProduct, uploadProductImage, insertProduct, deleteProduct })(ManageProduct);

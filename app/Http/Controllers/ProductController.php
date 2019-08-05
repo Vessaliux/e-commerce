@@ -103,11 +103,20 @@ class ProductController extends Controller
 
     public function destroy(Product $product)
     {
-        $status = $product->delete();
+        $user = Auth::user();
 
-        return response()->json([
-            'status' => $status,
-            'message' => $status ? "Product Deleted" : "Error Deleting Product"
-        ]);
+        if (!$user->is_admin) {
+            return response()->json(['error' => 'Unauthorized for non admins'], 401);
+        }
+
+        if (!$product->delete()) {
+            return response()->json(['error' => 'Error deleting product'], 500);
+        }
+
+        $response = [
+            'products' => Product::all(),
+            'msg' => "Product Deleted"
+        ];
+        return response()->json($response, 200);
     }
 }
