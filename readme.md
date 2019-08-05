@@ -18,5 +18,5 @@ email: admin@e-commerce.test
 pw: admin
 ```
 
-vendor/bin/phpunit to run unit tests (sometimes fails due to Faker class generating invalid/malformed fields)  
+```vendor/bin/phpunit``` to run unit tests (sometimes fails due to Faker class generating invalid/malformed fields)  
 Unit test functions in ```/tests/Unit/```
