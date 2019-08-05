@@ -9,11 +9,10 @@ php artisan passport:install
 php artisan serve
 ```
 
-Back-end: PHP Laravel 5.8
-Front-end: React (Redux, Bootstrapv4)
-<br />
-<br />
-<b>Default admin account</b>
+Back-end: PHP Laravel 5.8  
+Front-end: React (Redux, Bootstrapv4)  
+  
+Default admin account</b>
 ```
 email: admin@e-commerce.test
 pw: admin
