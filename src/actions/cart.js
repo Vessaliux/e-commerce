@@ -1,32 +1,27 @@
 import axios from 'axios';
-import { GET_PRODUCTS, GET_PRODUCT } from './types';
+import { GET_CART } from './types';
 
-// GET PRODUCTS
-export const getProducts = () => dispatch => {
-    axios.get('/api/products')
+// GET CART
+export const fetchCart = () => (dispatch, getState) => {
+    const config = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${getState().auth.token}`
+        }
+    }
+
+    axios.post(`/api/users/${getState().auth.user.id}/cart`, null, config)
         .then(res => {
             dispatch({
-                type: GET_PRODUCTS,
-                payload: res.data
+                type: GET_CART,
+                payload: res.data.cart
             });
         })
         .catch(err => console.log(err));
 }
 
-// GET A SINGLE PRODUCT BASED ON ID
-export const getProduct = (productId) => dispatch => {
-    axios.get(`/api/products/${productId}`)
-        .then(res => {
-            dispatch({
-                type: GET_PRODUCT,
-                payload: res.data
-            });
-        })
-        .catch(err => console.log(err));
-}
-
-// UPDATE A PRODUCT
-export const updateProduct = (productId, fields) => (dispatch, getState) => {
+// ADD A PRODUCT TO THE CART
+export const insertIntoCart = (productId, quantity = 1) => (dispatch, getState) => {
     return new Promise((resolve, reject) => {
         const config = {
             headers: {
@@ -35,7 +30,12 @@ export const updateProduct = (productId, fields) => (dispatch, getState) => {
             }
         }
 
-        axios.put(`/api/products/${productId}`, fields, config)
+        const data = {
+            product_id: productId,
+            quantity
+        }
+
+        axios.post(`/api/carts/${getState().cart.cart.id}`, data, config)
             .then(res => {
                 const data = {
                     msg: res.data.msg,
@@ -43,12 +43,13 @@ export const updateProduct = (productId, fields) => (dispatch, getState) => {
                 }
 
                 dispatch({
-                    type: GET_PRODUCTS,
-                    payload: res.data.products
+                    type: GET_CART,
+                    payload: res.data.cart
                 });
 
                 resolve(data);
             }).catch(err => {
+                console.log(err.response);
                 let msg;
                 if (typeof err.response.data.error === 'object') {
                     msg = Object.values(err.response.data.error).join(" ");
@@ -66,8 +67,8 @@ export const updateProduct = (productId, fields) => (dispatch, getState) => {
     });
 }
 
-// UPLOAD A PRODUCT IMAGE
-export const uploadProductImage = (formData) => (dispatch, getState) => {
+// REMOVE A PRODUCT FROM THE CART
+export const removeFromCart = (productId) => (dispatch, getState) => {
     return new Promise((resolve, reject) => {
         const config = {
             headers: {
@@ -76,16 +77,25 @@ export const uploadProductImage = (formData) => (dispatch, getState) => {
             }
         }
 
-        axios.post(`/api/products/upload-image`, formData, config)
+        const data = {
+            product_id: productId
+        }
+
+        axios.post(`/api/carts/${getState().cart.cart.id}/remove`, data, config)
             .then(res => {
                 const data = {
-                    image: res.data.image,
                     msg: res.data.msg,
                     status: res.status
                 }
 
+                dispatch({
+                    type: GET_CART,
+                    payload: res.data.cart
+                });
+
                 resolve(data);
             }).catch(err => {
+                console.log(err.response);
                 let msg;
                 if (typeof err.response.data.error === 'object') {
                     msg = Object.values(err.response.data.error).join(" ");
@@ -103,33 +113,26 @@ export const uploadProductImage = (formData) => (dispatch, getState) => {
     });
 }
 
-// ADD A NEW PRODUCT
-export const insertProduct = (fields) => (dispatch, getState) => {
+// CHECKOUT CART
+export const cartCheckout = token => (dispatch, getState) => {
     return new Promise((resolve, reject) => {
-        // placeholder
-        fields.description = 'Lorem ipsum dolor sit amet consectetur adipisicing elit. Accusantium incidunt eius dolores ratione, possimus amet animi consequuntur inventore labore, doloremque ut. Delectus repudiandae, dignissimos quidem ullam velit eum perspiciatis consequatur.';
-
         const config = {
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'text/plain',
                 'Authorization': `Bearer ${getState().auth.token}`
             }
         }
 
-        axios.post(`/api/products`, fields, config)
+        axios.post('/api/stripe', token.id, config)
             .then(res => {
                 const data = {
                     msg: res.data.msg,
                     status: res.status
                 }
 
-                dispatch({
-                    type: GET_PRODUCTS,
-                    payload: res.data.products
-                });
-
                 resolve(data);
             }).catch(err => {
+                console.log(err.response);
                 let msg;
                 if (typeof err.response.data.error === 'object') {
                     msg = Object.values(err.response.data.error).join(" ");

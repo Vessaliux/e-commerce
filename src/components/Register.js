@@ -1,5 +1,6 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 import { registerUser } from '../actions/auth';
@@ -14,9 +15,10 @@ import {
     Label
 } from 'reactstrap';
 
-const Register = ({ error, auth, notification, registerUser }) => {
-    const [notificationAlert, setNotificationAlert] = React.useState(false);
-    const [errorAlert, setErrorAlert] = React.useState(false);
+const Register = ({ auth, registerUser }) => {
+    const [alert, setAlert] = React.useState(false);
+    const [notification, setNotification] = React.useState(false);
+    const [message, setMessage] = React.useState('');
     const [username, setUsername] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
@@ -27,36 +29,7 @@ const Register = ({ error, auth, notification, registerUser }) => {
         password: null,
         password2: null
     });
-
-    React.useEffect(() => {
-        if (error.header === 'register') {
-            setNotificationAlert(false);
-            setErrorAlert(true);
-        }
-    }, [error]);
-
-    React.useEffect(() => {
-        if (notification.header === 'register') {
-            setUsername('');
-            setEmail('');
-            setPassword('');
-            setPassword2('');
-
-            setErrorAlert(false);
-            setNotificationAlert(true);
-            let timer = setTimeout(() => {
-                setNotificationAlert(false);
-            }, 3000);
-
-            return () => {
-                clearTimeout(timer);
-            }
-        }
-    }, [notification]);
-
-    const handleDismiss = () => {
-        setErrorAlert(false);
-    }
+    const [preventSubmit, setPreventSubmit] = React.useState(false);
 
     const handleInputChange = (e, func) => {
         if (!Object.values(validation).every(value => value === null)) {
@@ -68,8 +41,8 @@ const Register = ({ error, auth, notification, registerUser }) => {
             });
         }
 
-        if (errorAlert) {
-            setErrorAlert(false);
+        if (alert) {
+            setAlert(false);
         }
 
         func(e.target.value);
@@ -94,21 +67,50 @@ const Register = ({ error, auth, notification, registerUser }) => {
                 return;
             }
         }
+        setPreventSubmit(true);
 
-        registerUser({
+        let data = {
             name: username,
             email,
             password,
             c_password: password2
-        });
+        }
+        registerUser(data)
+            .then(res => { handleRegisterSuccess(res) })
+            .catch(err => { handleRegisterError(err) })
+            .finally(() => {
+                setPreventSubmit(false);
+            });
     }
 
-    if (!auth.isLoading && auth.isAuthenticated) {
-        return <Redirect to="/" />
+    const handleRegisterSuccess = res => {
+        setAlert(false);
+        setNotification(true);
+        setMessage(res.msg);
+
+        setUsername('');
+        setEmail('');
+        setPassword('');
+        setPassword2('');
+
+        let timer = setTimeout(() => {
+            setNotification(false);
+            clearTimeout(timer);
+        }, 2000);
+    }
+
+    const handleRegisterError = err => {
+        setNotification(false);
+        setAlert(true);
+        setMessage(err.msg);
+    }
+
+    if (auth.isAuthenticated) {
+        return <Redirect to="/" />;
     }
 
     return (
-        <Container className='mt-4'>
+        <Container style={{ marginTop: '5rem' }}>
             <Col md={{ size: 6, offset: 3 }}>
                 <h1>Register</h1>
                 <Form className='mt-4' onSubmit={handleSubmit}>
@@ -136,20 +138,22 @@ const Register = ({ error, auth, notification, registerUser }) => {
                         <FormFeedback>{validation.password2}</FormFeedback>
                     </FormGroup>
 
-                    <Button className='mb-4' color='primary'>Register</Button>
+                    <Button disabled={preventSubmit} className='mb-4' color='primary'>Register</Button>
 
-                    <Alert color='danger' isOpen={errorAlert} toggle={handleDismiss}>{error.msg}</Alert>
-                    <Alert color='success' isOpen={notificationAlert} toggle={() => { setNotificationAlert(!notificationAlert) }}>{notification.msg}</Alert>
+                    <Alert color='danger' isOpen={alert} toggle={() => { setAlert(false) }}>{message}</Alert>
+                    <Alert color='success' isOpen={notification} toggle={() => { setNotification(false) }}>{message}</Alert>
                 </Form>
             </Col>
         </Container>
     )
 }
+Register.propTypes = {
+    auth: PropTypes.object.isRequired,
+    registerUser: PropTypes.func.isRequired
+}
 
 const mapStateToProps = state => ({
-    error: state.errors,
-    auth: state.auth,
-    notification: state.notification
+    auth: state.auth
 });
 
 export default connect(mapStateToProps, { registerUser })(Register);

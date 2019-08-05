@@ -1,8 +1,8 @@
 import React from 'react';
-import { Redirect } from 'react-router-dom';
+import { Redirect, Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
-import store from '../store';
 import { fetchUser } from '../actions/auth';
 
 import {
@@ -11,36 +11,21 @@ import {
     Form, FormGroup, FormFeedback,
     Input,
     Label,
-    Modal, ModalHeader, ModalBody,
+    Modal, ModalHeader, ModalBody, ModalFooter,
+    Row
 } from 'reactstrap';
 
-let canRedirect = true;
-
-const LoginModal = ({ error, auth, notification, dispatch, ...props }) => {
+const LoginModal = ({ auth, fetchUser, dispatch, ...props }) => {
     const [alert, setAlert] = React.useState(false);
+    const [message, setMessage] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
+    const [remember, setRemember] = React.useState(false);
     const [validation, setValidation] = React.useState({
         email: null,
         password: null
     });
-    const [redirect, setRedirect] = React.useState('');
-
-    React.useEffect(() => {
-        if (error.header === 'login') {
-            setAlert(true);
-        }
-    }, [error]);
-
-    React.useEffect(() => {
-        if (notification.header === "login" && notification.status === 200) {
-            setRedirect('/');
-        }
-    }, [notification]);
-
-    const handleDismiss = () => {
-        setAlert(false);
-    }
+    const [preventSubmit, setPreventSubmit] = React.useState(false);
 
     const handleInputChange = (e, func) => {
         if (!Object.values(validation).every(value => value === null)) {
@@ -60,6 +45,10 @@ const LoginModal = ({ error, auth, notification, dispatch, ...props }) => {
     const handleSubmit = e => {
         e.preventDefault();
 
+        if (preventSubmit) {
+            return;
+        }
+
         // validate empty fields
         if (email.length === 0) {
             setValidation({ ...validation, email: 'Please provide an email' });
@@ -70,18 +59,26 @@ const LoginModal = ({ error, auth, notification, dispatch, ...props }) => {
             return;
         }
 
-        store.dispatch(fetchUser(email, password));
+        setPreventSubmit(true);
+        fetchUser(email, password, remember)
+            .then(handleLoginSuccess)
+            .catch(err => { handleLoginError(err); })
+            .finally(() => {
+                setPreventSubmit(false);
+            });
     }
 
-    if (redirect.length > 0 && canRedirect) {
-        canRedirect = false;
+    const handleLoginSuccess = () => {
         setEmail('');
         setPassword('');
         props.toggle();
-        return (<Redirect to={redirect} />);
-    } else if (!canRedirect) {
-        canRedirect = true;
-        setRedirect('');
+
+        return (<Redirect to='/' />);
+    }
+
+    const handleLoginError = (err) => {
+        setAlert(true);
+        setMessage(err.msg);
     }
 
     return (
@@ -103,19 +100,33 @@ const LoginModal = ({ error, auth, notification, dispatch, ...props }) => {
                         <FormFeedback>{validation.password}</FormFeedback>
                     </FormGroup>
 
-                    <Button color='primary'>Login</Button>
+                    <FormGroup check>
+                        <Input checked={remember} type='checkbox' id='loginRemember' onChange={() => { setRemember(!remember) }} value={password} />
+                        <Label for='loginRemember'>Remember Me</Label>
+                    </FormGroup>
 
-                    <Alert className='mt-4' color='danger' isOpen={alert} toggle={handleDismiss}>{error.msg}</Alert>
+                    <Button className='mt-2' disabled={preventSubmit} color='primary'>Login</Button>
+
+                    <Alert className='mt-4' color='danger' isOpen={alert} toggle={() => { setAlert(false) }}>{message}</Alert>
                 </Form>
             </ModalBody>
+            <ModalFooter style={{ justifyContent: 'space-between' }}>
+                <Row className='align-items-center ml-1'>
+                    <p style={{ margin: 0 }}>Not a member?</p>
+                    <Link className='ml-1' color='link' onClick={props.toggle} to='/register'>Register</Link>
+                </Row>
+
+            </ModalFooter>
         </Modal>
     )
 }
+LoginModal.propTypes = {
+    auth: PropTypes.object.isRequired,
+    fetchUser: PropTypes.func.isRequired
+}
 
 const mapStateToProps = state => ({
-    error: state.errors,
-    auth: state.auth,
-    notification: state.notification
+    auth: state.auth
 });
 
-export default connect(mapStateToProps)(LoginModal);
+export default connect(mapStateToProps, { fetchUser })(LoginModal);

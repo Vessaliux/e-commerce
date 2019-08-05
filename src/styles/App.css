@@ -3,3 +3,22 @@
     object-position: 0 0;
     max-height: 500px !important;
 }
+
+ion-icon {
+    -moz-transform: scale(0.75);
+    -ms-transform: scale(0.75);
+    -o-transform: scale(0.75);
+    -webkit-transform: scale(0.75);
+    transform: scale(0.75);
+    -moz-transform-origin: center;
+    -ms-transform-origin: center;
+    -o-transform-origin: center;
+    -webkit-transform-origin: center;
+    transform-origin: center;
+}
+
+#card-element {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    border-color: 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}

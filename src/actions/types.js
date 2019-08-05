@@ -8,3 +8,4 @@ export const AUTH_LOGIN = 'AUTH_LOGIN';
 export const LOGOUT_SUCCESS = 'LOGOUT_SUCCESS';
 export const NOTIFY = 'NOTIFY';
 export const UPDATE_USER = 'UPDATE_USER';
+export const GET_CART = 'GET_CART'

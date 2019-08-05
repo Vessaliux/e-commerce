@@ -28,7 +28,6 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $order = Order::create([
-            'product_id' => $request->product_id,
             'user_id' => Auth::id(),
             'quantity' => $request->quantity,
             'address' => $request->address

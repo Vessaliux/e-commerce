@@ -7,6 +7,7 @@ import './styles/App.css';
 import { Provider } from 'react-redux';
 import store from './store';
 
+import Drawer from 'react-motion-drawer';
 import Main from './components/Main';
 
 setConfig({

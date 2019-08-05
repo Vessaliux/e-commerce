@@ -1,5 +1,6 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
+import PropTypes from 'prop-types';
 
 import { connect } from 'react-redux';
 import { updateProfile } from '../actions/users';
@@ -12,43 +13,33 @@ import {
     Form, FormGroup, FormFeedback,
     Input,
     Label,
+    Row
 } from 'reactstrap';
 
-const EditProfile = ({ error, auth, notification, updateProfile }) => {
-    const [notificationAlert, setNotificationAlert] = React.useState(false);
-    const [errorAlert, setErrorAlert] = React.useState(false);
+let timer = null;
+const EditProfile = ({ auth, updateProfile }) => {
+    const [notification, setNotification] = React.useState(false);
+    const [alert, setAlert] = React.useState(false);
+    const [message, setMessage] = React.useState('');
+    const [isEditing, setIsEditing] = React.useState(false);
     const [username, setUsername] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [validation, setValidation] = React.useState({
         username: null,
         email: null
     });
-
-    React.useEffect(() => {
-        if (error.header === 'edit_profile') {
-            setNotificationAlert(false);
-            setErrorAlert(true);
-        }
-    }, [error]);
-
-    React.useEffect(() => {
-        if (notification.header === 'edit_profile') {
-            setErrorAlert(false);
-            setNotificationAlert(true);
-            let timer = setTimeout(() => {
-                setNotificationAlert(false);
-            }, 3000);
-
-            return () => {
-                clearTimeout(timer);
-            }
-        }
-    }, [notification]);
+    const [preventSubmit, setPreventSubmit] = React.useState(false);
 
     React.useEffect(() => {
         setUsername(auth.user.name);
         setEmail(auth.user.email);
-    }, [true]);
+
+        return () => {
+            if (timer !== null) {
+                clearTimeout(timer);
+            }
+        };
+    }, []);
 
     const handleInputChange = (e, func) => {
         if (!Object.values(validation).every(value => value === null)) {
@@ -58,12 +49,12 @@ const EditProfile = ({ error, auth, notification, updateProfile }) => {
             });
         }
 
-        if (errorAlert) {
-            setErrorAlert(false);
+        if (alert) {
+            setAlert(false);
         }
 
-        if (notificationAlert) {
-            setNotificationAlert(false);
+        if (notification) {
+            setNotification(false);
         }
 
         func(e.target.value);
@@ -86,18 +77,63 @@ const EditProfile = ({ error, auth, notification, updateProfile }) => {
                 return;
             }
         }
+        setPreventSubmit(true);
 
-        updateProfile(auth.user.id, {
+        let data = {
             name: username,
             email
-        });
+        };
+        updateProfile(auth.user.id, data)
+            .then(res => { handleUpdateSuccess(res) })
+            .catch(err => { handleUpdateError(err) })
+            .finally(() => {
+                setPreventSubmit(false);
+            });
+    }
+
+    const handleUpdateSuccess = res => {
+        setAlert(false);
+        setNotification(true);
+        setMessage(res.msg);
+        setIsEditing(false);
+
+        timer = setTimeout(() => {
+            setNotification(false);
+            clearTimeout(timer);
+        }, 2000);
+    }
+
+    const handleUpdateError = err => {
+        setNotification(false);
+        setAlert(true);
+        setMessage(err.msg);
+    }
+
+    const onCancelClick = () => {
+        setUsername(auth.user.name);
+        setEmail(auth.user.email);
+        setIsEditing(false);
     }
 
     return (
-        <Container className='mt-4'>
-            <Col md={{ size: 6, offset: 3 }}>
+        <Container style={{ marginTop: '5rem' }}>
+            <Col className='mt-4' md={{ size: 6, offset: 3 }}>
                 <h1>Profile</h1>
-                <Form className='mt-4' onSubmit={handleSubmit}>
+                <Container className={isEditing ? 'd-none p-0' : ''}>
+                    <Row>
+                        <p className='mx-0 my-auto'><b>Name:</b> {username}</p>
+                    </Row>
+                    <Row className='mt-1'>
+                        <p className='mx-0 my-auto'><b>Email:</b> {email}</p>
+                    </Row>
+                    <Row className='mt-2'>
+                        <Button onClick={() => setIsEditing(true)}>Edit</Button>
+                    </Row>
+                    <Row className='mt-4'>
+                        <Alert color='success' isOpen={notification} toggle={() => { setNotification(false) }}>{message}</Alert>
+                    </Row>
+                </Container>
+                <Form className={isEditing ? '' : 'd-none'} onSubmit={handleSubmit}>
                     <FormGroup>
                         <Label for='editUsername'>Name</Label>
                         <Input invalid={validation.username !== null} type='text' id='editUsername' onChange={e => { handleInputChange(e, setUsername) }} value={username} />
@@ -110,20 +146,24 @@ const EditProfile = ({ error, auth, notification, updateProfile }) => {
                         <FormFeedback>{validation.email}</FormFeedback>
                     </FormGroup>
 
-                    <Button className='mb-4'>Edit</Button>
+                    <FormGroup>
+                        <Button disabled={preventSubmit} color='primary'>Save</Button>
+                        <Button className='ml-2' onClick={onCancelClick} color='secondary'>Cancel</Button>
+                    </FormGroup>
 
-                    <Alert color='danger' isOpen={errorAlert} toggle={() => { setErrorAlert(!errorAlert) }}>{error.msg}</Alert>
-                    <Alert color='success' isOpen={notificationAlert} toggle={() => { setNotificationAlert(!notificationAlert) }}>{notification.msg}</Alert>
+                    <Alert color='danger' isOpen={alert} toggle={() => { setAlert(false) }}>{message}</Alert>
                 </Form>
             </Col>
         </Container>
     )
 }
+EditProfile.propTypes = {
+    auth: PropTypes.object.isRequired,
+    updateProfile: PropTypes.func.isRequired
+}
 
 const mapStateToProps = state => ({
-    error: state.errors,
-    auth: state.auth,
-    notification: state.notification
+    auth: state.auth
 });
 
 export default connect(mapStateToProps, { updateProfile })(EditProfile);

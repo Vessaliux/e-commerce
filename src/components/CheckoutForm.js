@@ -1,32 +1,66 @@
 import React, { Component } from 'react';
+import axios from 'axios';
 import { CardElement, injectStripe } from 'react-stripe-elements';
 
-class CheckoutForm extends Component {
-    constructor(props) {
-        super(props);
-        this.submit = this.submit.bind(this);
+import { connect } from 'react-redux';
+import { cartCheckout } from '../actions/cart';
+
+import {
+    Button,
+    Form,
+    Modal, ModalHeader, ModalBody,
+    Row,
+    Toast, ToastHeader, ToastBody
+} from 'reactstrap';
+
+const CheckoutForm = ({ cartCheckout, ...props }) => {
+    const [notification, setNotification] = React.useState(false);
+    const [error, setError] = React.useState(false);
+    const [preventSubmit, setPreventSubmit] = React.useState(false);
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        setPreventSubmit(true);
+
+        const { token } = await props.stripe.createToken({ name: "E-Commerce" });
+
+        cartCheckout(token)
+            .then(res => {
+                setNotification(true);
+            }).catch(err => {
+                console.log(err.response);
+                setError(true);
+            }).finally(() => {
+                setPreventSubmit(false);
+                props.toggle();
+                props.toggleCheckout();
+            });
     }
 
-    async submit(ev) {
-        let { token } = await this.props.stripe.createToken({ name: "Name" });
-        let response = await fetch("/charge", {
-            method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: token.id
-        });
+    return (
+        <React.Fragment>
+            <Modal isOpen={props.isOpen} toggle={props.toggle}>
+                <Form onSubmit={handleSubmit}>
+                    <ModalHeader toggle={props.toggle}>Payment via Stripe</ModalHeader>
+                    <ModalBody>
+                        <Row className='flex-column px-3 py-2'>
+                            <CardElement disabled={preventSubmit} id='card-element' className='p-2' />
+                        </Row>
 
-        if (response.ok) console.log("Purchase Complete!")
-    }
-
-    render() {
-        return (
-            <div className="checkout">
-                <p>Would you like to complete the purchase?</p>
-                <CardElement />
-                <button onClick={this.submit}>Send</button>
-            </div>
-        );
-    }
+                        <Button disabled={preventSubmit} className='mt-2' color='info' style={{ width: '100%' }}>Pay ${props.calculate ? props.calculate() : 0} SGD</Button>
+                    </ModalBody>
+                </Form>
+            </Modal>
+            <Toast style={{ position: 'fixed', top: 0, right: 0, zIndex: 2000 }} isOpen={notification}>
+                <ToastHeader toggle={() => setNotification(false)} icon='success'>Success</ToastHeader>
+                <ToastBody>Your purchase has been successfully processed!</ToastBody>
+            </Toast>
+            <Toast style={{ position: 'fixed', top: 0, right: 0, zIndex: 2000 }} isOpen={error}>
+                <ToastHeader toggle={() => setError(false)} icon='danger'>Error</ToastHeader>
+                <ToastBody>Oops! An error ocurred.</ToastBody>
+            </Toast>
+        </React.Fragment>
+    );
 }
 
-export default injectStripe(CheckoutForm);
+export default connect(null, { cartCheckout })(injectStripe(CheckoutForm));

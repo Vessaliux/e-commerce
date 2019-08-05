@@ -34,8 +34,8 @@ class UserTest extends TestCase
     public function user_can_register_an_account()
     {
         $request = Request::create('/register', 'POST', [
-            'name' => 'Glen',
-            'email' => 'glenjangmg@gmail.com',
+            'name' => 'John Doe',
+            'email' => 'JohnDoe@test.com',
             'password' => 'password',
             'c_password' => 'password'
         ]);
@@ -43,6 +43,7 @@ class UserTest extends TestCase
 
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertCount(1, User::all());
+        $this->assertEquals('JohnDoe@test.com', User::all()->first()->email);
     }
 
     /** @test */
@@ -59,5 +60,38 @@ class UserTest extends TestCase
 
         $this->assertEquals(422, $response->getStatusCode());
         $this->assertCount(1, User::all());
+    }
+
+    /** @test */
+    public function login_should_fail_with_invalid_credentials()
+    {
+        factory(User::class)->create([
+            'email' => 'test@test.test'
+        ]);
+        $request = Request::create('/login', 'POST', [
+            'email' => 'JohnDoe@test.com',
+            'password' => 'password'
+        ]);
+        $response = (new UserController())->login($request);
+
+        $this->assertEquals(422, $response->getStatusCode());
+    }
+
+    /** @test */
+    public function login_should_succeed_with_valid_credentials()
+    {
+        \Artisan::call('passport:install');
+
+        factory(User::class)->create([
+            'email' => 'JohnDoe@test.com'
+        ]);
+
+        $request = Request::create('/login', 'POST', [
+            'email' => 'JohnDoe@test.com',
+            'password' => 'password'
+        ]);
+        $response = (new UserController())->login($request);
+
+        $this->assertEquals(200, $response->getStatusCode());
     }
 }

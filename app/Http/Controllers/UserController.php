@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\User;
+use App\Cart;
+use App\CartItem;
+use App\Product;
 use Auth;
 use Validator;
 use Illuminate\Http\Request;
@@ -24,18 +27,13 @@ class UserController extends Controller
         return response()->json($response, $status);
     }
 
-    public function index(Request $request)
-    {
-        return response()->json(Product::all(), 200);
-    }
-
     public function login(Request $request)
     {
         $status = 422;
         $response = ['error' => 'Invalid login credentials'];
 
         // Always set to remember me for testing purposes
-        if (Auth::attempt($request->only(['email', 'password']), true)) {
+        if (Auth::attempt($request->only(['email', 'password']), $request['remember'])) {
             $status = 200;
             $response = [
                 'user' => Auth::user(),
@@ -98,13 +96,38 @@ class UserController extends Controller
         }
     }
 
-    public function show(User $user)
+    // fetch the active cart for the user
+    public function fetchCart(Request $request, $id)
     {
-        return response()->json($user);
-    }
+        // parse id to int
+        $id = intval($id);
 
-    public function showOrders(User $user)
-    {
-        return response()->json($user->orders->with(['product'])->get());
+        // refuse if not admin nor intended recipient
+        $user = Auth::user();
+
+        if ($user->id !== $id && !$user->is_admin) {
+            return response()->json(['error' => $id], 401);
+        }
+
+        $user = User::where('id', '=', $id)->first();
+        $cart = $user->carts()->where('checked_out', '=', false);
+
+        // no active cart available, create one
+        if (!$cart->exists()) {
+            $cart = Cart::create([
+                'user_id' => $user->id
+            ]);
+        } else {
+            $cart = $cart->get()->first();
+        }
+
+        // fill cart data for response
+        $cart['items'] = CartItem::with(['product'])->where('cart_id', '=', $cart->id)->get();
+        $response = [
+            'cart' => $cart,
+            'msg' => 'Cart fetched'
+        ];
+
+        return response()->json($response, 200);
     }
 }

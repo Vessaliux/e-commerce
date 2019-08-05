@@ -1,11 +1,18 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom'
 import PropTypes from 'prop-types';
-import { getProducts } from '../actions/products';
 
 import { connect } from 'react-redux';
+import { getProducts } from '../actions/products';
+import { insertIntoCart } from '../actions/cart';
 
-import { Button, Card, CardBody, CardImg, CardImgOverlay, CardText, Col, Container, Row } from 'reactstrap';
+import {
+    Button,
+    Card, CardBody, CardImg, CardImgOverlay, CardText,
+    Col,
+    Container,
+    Row
+} from 'reactstrap';
 
 const cardStyle = {
     marginBottom: '2.5rem',
@@ -17,16 +24,23 @@ const cardImageStyle = {
     objectFit: 'cover'
 }
 
-function Home({ products, getProducts }) {
+function Home({ products, getProducts, insertIntoCart }) {
     const [hoverId, setHoverId] = React.useState(0);
     const [redirect, setRedirect] = React.useState('');
+    const btnAddToCart = React.useRef(null);
 
     React.useEffect(() => {
         getProducts();
     }, []);
 
     const handleCardClick = (e, productId) => {
-        setRedirect(`/products/${productId}`)
+        if (btnAddToCart.current.props.name === e.target.name) {
+            insertIntoCart(productId)
+                .then(() => { })
+                .catch(err => { console.log(err) });
+        } else {
+            setRedirect(`/products/${productId}`)
+        }
     }
 
     const handleMouseEnterCard = (e, productId) => {
@@ -42,7 +56,7 @@ function Home({ products, getProducts }) {
     }
 
     return (
-        <Container className='mt-4' fluid={true}>
+        <Container style={{ marginTop: '5rem' }} fluid={true}>
             <Col md={{ size: 10, offset: 1 }} xs={{ offset: 1, span: 10 }} >
                 <Row style={{ minWidth: 800 }} >
                     {products.map(product => (
@@ -59,7 +73,7 @@ function Home({ products, getProducts }) {
                                     src={product.image}
                                 />
                                 <CardImgOverlay className='d-flex flex-column' style={{ padding: 0 }}>
-                                    <Button className='mt-auto' variant={parseInt(product.units) === 0 ? 'danger' : 'secondary'} style={product.id === hoverId ? { width: '100%' } : { display: 'none' }}>{parseInt(product.units) === 0 ? 'OUT OF STOCK' : 'PURCHASE'}</Button>
+                                    <Button ref={btnAddToCart} className='mt-auto' name='btnAddToCart' variant={parseInt(product.units) === 0 ? 'danger' : 'secondary'} style={product.id === hoverId ? { width: '100%' } : { display: 'none' }}>{parseInt(product.units) === 0 ? 'OUT OF STOCK' : 'ADD TO CART'}</Button>
                                 </CardImgOverlay>
                                 <CardBody>
                                     <CardText className='text-primary'>{product.name}</CardText>
@@ -73,13 +87,14 @@ function Home({ products, getProducts }) {
         </Container >
     )
 }
-
 Home.propTypes = {
-    products: PropTypes.array.isRequired
+    products: PropTypes.array.isRequired,
+    getProducts: PropTypes.func.isRequired,
+    insertIntoCart: PropTypes.func.isRequired
 }
 
 const mapStateToProps = state => ({
     products: state.products.products
 });
 
-export default connect(mapStateToProps, { getProducts })(Home);
+export default connect(mapStateToProps, { getProducts, insertIntoCart })(Home);

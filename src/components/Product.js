@@ -3,6 +3,7 @@ import { Redirect } from 'react-router-dom';
 
 import { connect } from 'react-redux';
 import { getProduct } from '../actions/products';
+import { insertIntoCart } from '../actions/cart';
 
 import {
     Button,
@@ -15,7 +16,7 @@ import {
 
 let canRedirect = true;
 
-const Product = ({ auth, products, getProduct, ...props, }) => {
+const Product = ({ auth, products, getProduct, insertIntoCart, ...props, }) => {
     const [redirect, setRedirect] = React.useState('');
 
     React.useEffect(() => {
@@ -24,7 +25,9 @@ const Product = ({ auth, products, getProduct, ...props, }) => {
 
     const handleClick = e => {
         if (auth.isAuthenticated) {
-            setRedirect('');
+            insertIntoCart(products.product.id)
+                .then(() => { })
+                .catch(err => { console.log(err) });
         } else {
             setRedirect('/');
         }
@@ -40,7 +43,7 @@ const Product = ({ auth, products, getProduct, ...props, }) => {
     }
 
     let productItem, quantity;
-    if (products.product === null) {
+    if (products.product === null || products.product.id !== parseInt(props.match.params.productId)) {
         return null;
     } else {
         productItem = [
@@ -55,7 +58,7 @@ const Product = ({ auth, products, getProduct, ...props, }) => {
     }
 
     return (
-        <Container className='mt-4'>
+        <Container style={{ marginTop: '5rem' }}>
             <Row>
                 <Col md={6} style={{ maxHeight: 500 }}>
                     <UncontrolledCarousel controls={false} indicators={false} items={productItem} />
@@ -69,7 +72,7 @@ const Product = ({ auth, products, getProduct, ...props, }) => {
                         <p className='ml-2' style={{ fontSize: '0.8rem' }}>{quantity === 0 ? 'Out of stock' : `(${quantity} available in stock)`}</p>
                     </Row>
                     <Row className='mt-4'>
-                        <Button className='btn-block' onClick={handleClick} style={{ fontWeight: 'bold', fontSize: '1.25rem' }} color='success'>Purchase</Button>
+                        <Button className='btn-block' onClick={handleClick} style={{ fontWeight: 'bold', fontSize: '1.25rem' }} color='success'>Add to Cart</Button>
                     </Row>
                     <Row className='mt-5'>
                         <h3>About Product</h3>
@@ -88,4 +91,4 @@ const mapStateToProps = state => ({
     auth: state.auth
 });
 
-export default connect(mapStateToProps, { getProduct })(Product);
+export default connect(mapStateToProps, { getProduct, insertIntoCart })(Product);
