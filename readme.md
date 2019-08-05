@@ -13,7 +13,8 @@ vendor/bin/phpunit to run unit tests (sometimes fails due to Faker class generat
 
 Back-end: PHP Laravel 5.8
 Front-end: React (Redux, Bootstrapv4)
-</br>
+<br />
+<br />
 <b>Default admin account</b>
 <p>email: admin@e-commerce.test</p>
 <p>pw: admin</p>
