@@ -36,6 +36,14 @@ class StripeController extends Controller
         $amount = 0;
         foreach ($cartItems as $item) {
             $amount += $item->price * $item->quantity;
+
+            // final quantity check
+            if ($item->quantity > $item->product->units) {
+                return response()->json(["error" => 'Out of stock'], 400);
+            } else {
+                $item->product->units -= $item->quantity;
+                $item->product->save();
+            }
         }
 
         // ex. $11.55 = 1155 according to Stripe API

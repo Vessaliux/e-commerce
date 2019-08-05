@@ -51,13 +51,25 @@ class CartController extends Controller
             // increase or decrease the existing quantity
             $cartItem = $cartItem->first();
             $cartItem->quantity += $quantity;
-            $cartItem->save();
 
-            // if quantity is 0 or below, remove the item
-            if ($cartItem->quantity <= 0) {
+            // if quantity or stock is 0 or below, remove the item
+            if ($cartItem->quantity <= 0 || $product->units <= 0) {
                 $cartItem->delete();
             }
+            // check for stock
+            else {
+                if ($product->units < $cartItem->quantity) {
+                    $cartItem->quantity = $product->units;
+                }
+
+                $cartItem->save();
+            }
         } else {
+            // check if there is enough quantity
+            if ($product->units < $quantity) {
+                return response()->json(['error' => 'Out of stock'], 404);
+            }
+
             // create the cart item and map it to cart and product
             CartItem::create([
                 'cart_id' => $id,

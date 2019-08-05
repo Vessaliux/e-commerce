@@ -121,8 +121,19 @@ class UserController extends Controller
             $cart = $cart->get()->first();
         }
 
+        // remove item or reduce quantity depending on stock
+        $cartItems = CartItem::with(['product'])->where('cart_id', '=', $cart->id)->where('quantity', '<', 'units')->where('units', '>', 0)->get();
+        foreach ($cartItems as $cartItem) {
+            if ($cartItem->product->units <= 0) {
+                $cartItem->delete();
+            } else if ($cartItem->quantity > $cartItem->product->units) {
+                $cartItem->quantity = $cartItem->product->units;
+                $cartItem->save();
+            }
+        }
+
         // fill cart data for response
-        $cart['items'] = CartItem::with(['product'])->where('cart_id', '=', $cart->id)->get();
+        $cart['items'] = $cartItems;
         $response = [
             'cart' => $cart,
             'msg' => 'Cart fetched'

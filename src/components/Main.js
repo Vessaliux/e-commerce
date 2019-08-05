@@ -74,7 +74,7 @@ const Main = ({ auth, cart, loadUser, fetchCart }) => {
             <Checkout
                 isOpen={showCartModal}
                 toggle={() => {
-                    handleCartToggle();
+                    setShowCartModal(false);
                     fetchCart();
                 }}
             />
