@@ -5,12 +5,12 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Order extends Model
+class Cart extends Model
 {
     use SoftDeletes;
 
     protected $fillable = [
-        'user_id', 'address'
+        'user_id'
     ];
 
     public function user()
@@ -18,8 +18,8 @@ class Order extends Model
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    public function orderItems()
+    public function cartItems()
     {
-        return $this->hasMany(OrderItem::class);
+        return $this->hasMany(CartItem::class);
     }
 }
