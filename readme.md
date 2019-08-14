@@ -23,6 +23,7 @@ Test Payment Information (Stripe)
 Card Number: 4242 4242 4242 4242
 Expiry: Any future date
 CVV: Any 3 digit
+Zip: Any 5 digit
 ```
   
 ```vendor/bin/phpunit``` to run unit tests (sometimes fails due to Faker class generating invalid/malformed fields)  
